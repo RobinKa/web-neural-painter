@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs"
-import React, { useState, useRef } from "react"
-import { Button } from "react-bootstrap";
+import React, { useRef } from "react"
+import { Button } from "react-bootstrap"
 
 tf.enableProdMode()
 
@@ -26,7 +26,6 @@ export function Painter(props: any) {
     const layers = props.layers
     const numHidden = props.numHidden
 
-    const [currentModel, setCurrentModel] = useState<tf.Sequential | null>(null)
     const canvas = useRef<HTMLCanvasElement>(null)
 
     async function generateImage(model: tf.Sequential) {
@@ -83,7 +82,7 @@ export function Painter(props: any) {
             model.add(tf.layers.batchNormalization())
         }
 
-        model.add(tf.layers.dense({ inputShape: layers == 1 ? numInput : numHidden, units: 3 }))
+        model.add(tf.layers.dense({ inputShape: layers === 1 ? numInput : numHidden, units: 3 }))
         model.add(tf.layers.activation({
             activation: getRandomActivation(),
         }))
@@ -102,8 +101,6 @@ export function Painter(props: any) {
 
         ctx.putImageData(imageData, 0, 0)
 
-        setCurrentModel(model)
-
         setGenerating(false)
     }
 
@@ -111,7 +108,7 @@ export function Painter(props: any) {
         <div>
             <canvas ref={canvas} onClick={generateModel} width={width} height={height} style={{ boxShadow: "3px 3px 5px 0px rgba(0,0,0,0.75)" }} />
 
-            <div style={{ textAlign: "center" }}>
+            <div style={{ marginTop: "10px", textAlign: "center" }}>
                 <Button onClick={generateModel}>Generate</Button>
             </div>
         </div>
