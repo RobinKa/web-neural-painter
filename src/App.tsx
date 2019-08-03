@@ -7,10 +7,10 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'rc-slider/assets/index.css'
 
 const [defaultWidth, defaultHeight] = [256, 256]
-const defaultLayers = 3
+const defaultLayers = 4
 const defaultNumHidden = 10
 const defaultFrames = 20
-const defaultRadius = 10
+const defaultRadius = 100
 
 const App: React.FC = () => {
     const [width, setWidth] = useState(defaultWidth)
@@ -51,7 +51,7 @@ const App: React.FC = () => {
                     <label>Frames: {frames}</label>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                    <Slider defaultValue={defaultRadius} min={0.01} max={100} step={0.01} onChange={value => setRadius(value)} />
+                    <Slider defaultValue={defaultRadius} min={0.01} max={500} step={0.01} onChange={value => setRadius(value)} />
                     <label>Radius: {radius}</label>
                 </div>
             </div>

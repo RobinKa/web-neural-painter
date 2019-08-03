@@ -31,12 +31,10 @@ function getInputImage(width: number, height: number, time: number, radius: numb
     }
 
     const image: number[][][] = []
-    const halfWidth = width / 2
-    const halfHeight = height / 2
     for (let x = 0; x < width; x++) {
         image.push([])
         for (let y = 0; y < height; y++) {
-            image[x].push([x - halfWidth, y - halfHeight, radius * Math.cos(2 * Math.PI * time), radius * Math.sin(2 * Math.PI * time)])
+            image[x].push([2 * x - width, 2 * y - height, radius * Math.cos(2 * Math.PI * time), radius * Math.sin(2 * Math.PI * time)])
         }
     }
 
@@ -104,6 +102,7 @@ export function Painter(props: any) {
         }
 
         model.add(tf.layers.conv2d({ inputShape: layers === 1 ? inputShape : hiddenShape, filters: 3, kernelSize: [1, 1] }))
+
         model.add(tf.layers.activation({
             activation: getRandomActivation(),
         }))
@@ -114,16 +113,16 @@ export function Painter(props: any) {
             for (let x = 0; x < width; x++) {
                 for (let y = 0; y < height; y++) {
                     const i = x + y * width
-                    imageData.data[i * 4 + 0] = Math.floor(255 * image[x][y][0])
-                    imageData.data[i * 4 + 1] = Math.floor(255 * image[x][y][1])
-                    imageData.data[i * 4 + 2] = Math.floor(255 * image[x][y][2])
+                    imageData.data[i * 4 + 0] = Math.min(255, Math.max(0, 255 * image[x][y][0]))
+                    imageData.data[i * 4 + 1] = Math.min(255, Math.max(0, 255 * image[x][y][1]))
+                    imageData.data[i * 4 + 2] = Math.min(255, Math.max(0, 255 * image[x][y][2]))
                     imageData.data[i * 4 + 3] = 255
                 }
             }
 
             ctx.putImageData(imageData, 0, 0)
 
-            images.push(canv.toDataURL("image/jpeg", 0.9))
+            images.push(canv.toDataURL("image/png"))
 
             time += 1 / numFrames
 
@@ -131,7 +130,9 @@ export function Painter(props: any) {
         }
 
         gifshot.createGIF({
-            "images": images
+            "images": images,
+            "gifWidth": width,
+            "gifHeight": height,
         }, function (obj: any) {
             if (!obj.error) {
                 const image = obj.image
@@ -149,7 +150,7 @@ export function Painter(props: any) {
         <div>
             <canvas ref={canvas} onClick={generateModel} width={width} height={height} style={{ boxShadow: "3px 3px 5px 0px rgba(0,0,0,0.75)" }} />
 
-            <div style={{ marginTop: "10px", textAlign: "center" }}>
+            <div style={{ marginTop: "10px", marginBottom: "10px", textAlign: "center" }}>
                 <Button onClick={generateModel}>Generate</Button>
             </div>
         </div>
