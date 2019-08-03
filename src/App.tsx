@@ -9,6 +9,8 @@ import 'rc-slider/assets/index.css'
 const [defaultWidth, defaultHeight] = [256, 256]
 const defaultLayers = 3
 const defaultNumHidden = 10
+const defaultFrames = 20
+const defaultRadius = 10
 
 const App: React.FC = () => {
     const [width, setWidth] = useState(defaultWidth)
@@ -17,6 +19,8 @@ const App: React.FC = () => {
     const [generating, setGenerating] = useState(false)
     const [layers, setLayers] = useState(defaultLayers)
     const [numHidden, setNumHidden] = useState(defaultNumHidden)
+    const [frames, setFrames] = useState(defaultFrames)
+    const [radius, setRadius] = useState(defaultRadius)
 
     return (
         <div>
@@ -39,13 +43,21 @@ const App: React.FC = () => {
                     <label>Layers: {layers}</label>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                    <Slider defaultValue={defaultLayers} min={1} max={100} step={1} onChange={value => setNumHidden(value)} />
+                    <Slider defaultValue={defaultNumHidden} min={1} max={100} step={1} onChange={value => setNumHidden(value)} />
                     <label>Hidden: {numHidden}</label>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                    <Slider defaultValue={defaultFrames} min={1} max={120} step={1} onChange={value => setFrames(value)} />
+                    <label>Frames: {frames}</label>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                    <Slider defaultValue={defaultRadius} min={0.01} max={100} step={0.01} onChange={value => setRadius(value)} />
+                    <label>Radius: {radius}</label>
                 </div>
             </div>
 
             <div style={{ visibility: generating ? "hidden" : "visible", textAlign: "center" }}>
-                <Painter width={width} height={height} setProgress={setProgress} setGenerating={setGenerating} layers={layers} numHidden={numHidden} />
+                <Painter width={width} height={height} setProgress={setProgress} setGenerating={setGenerating} layers={layers} numHidden={numHidden} numFrames={frames} radius={radius} />
             </div>
         </div>
     );
