@@ -18,6 +18,29 @@ const activations: any = [
     "tanh",
 ]
 
+let inputImageWidth: number = 0
+let inputImageHeight: number = 0
+let inputImage: any = null
+
+function getInputImage(width: number, height: number) {
+    if (inputImageWidth === width && inputImageHeight === height) {
+        return inputImage
+    }
+
+    const image: number[][][] = []
+    const halfWidth = width / 2
+    const halfHeight = height / 2
+    for (let x = 0; x < width; x++) {
+        image.push([])
+        for (let y = 0; y < height; y++) {
+            image[x].push([x - halfWidth, y - halfHeight])
+        }
+    }
+
+    inputImage = tf.tensor4d([image])
+
+    return inputImage
+}
 
 export function Painter(props: any) {
     const [width, height] = [props.width, props.height]
@@ -31,48 +54,35 @@ export function Painter(props: any) {
     async function generateImage(model: tf.Sequential) {
         setProgress(0)
 
-        let colors: number[][] = []
+        const pred = model.predict(getInputImage(width, height)) as tf.Tensor
 
-        for (let y = 0; y < height; y++) {
-            const coordsX: number[] = []
-            const coordsY: number[] = []
-            for (let x = 0; x < width; x++) {
-                coordsX.push(x - width / 2)
-                coordsY.push(y - height / 2)
-            }
-
-            const coords = tf.tensor2d([coordsX, coordsY]).transpose()
-
-            const pred = model.predict(coords) as tf.Tensor
-
-            const predColors = await pred.array() as number[][]
-
-            colors = colors.concat(predColors)
-
-            if (y % 10 === 0) {
-                setProgress(y / height)
-            }
-        }
+        const predColors = await pred.array() as number[][][][]
 
         setProgress(1)
 
-        return colors
+        return predColors[0]
     }
 
     async function generateModel() {
         setGenerating(true)
 
         const model = tf.sequential()
-        const numInput = 2
+        const inputShape = [width, height, 2]
+        const hiddenShape = [width, height, numHidden]
 
         function getRandomActivation(): any {
             return activations[Math.floor(Math.random() * activations.length)]
         }
 
         for (let i = 0; i < layers - 1; i++) {
-            model.add(tf.layers.dense({
+            /*model.add(tf.layers.dense({
                 units: numHidden,
                 inputShape: [i === 0 ? numInput : numHidden],
+            }))*/
+            model.add(tf.layers.conv2d({
+                kernelSize: [1, 1],
+                filters: numHidden,
+                inputShape: i === 0 ? inputShape : hiddenShape,
             }))
 
             model.add(tf.layers.activation({
@@ -82,7 +92,7 @@ export function Painter(props: any) {
             model.add(tf.layers.batchNormalization())
         }
 
-        model.add(tf.layers.dense({ inputShape: layers === 1 ? numInput : numHidden, units: 3 }))
+        model.add(tf.layers.conv2d({ inputShape: layers === 1 ? inputShape : hiddenShape, filters: 3, kernelSize: [1, 1] }))
         model.add(tf.layers.activation({
             activation: getRandomActivation(),
         }))
@@ -92,11 +102,14 @@ export function Painter(props: any) {
         const ctx = canvas.current!.getContext("2d")!
         const imageData = ctx.createImageData(width, height)
 
-        for (let i = 0; i < width * height; i++) {
-            imageData.data[i * 4 + 0] = Math.floor(255 * image[i][0])
-            imageData.data[i * 4 + 1] = Math.floor(255 * image[i][1])
-            imageData.data[i * 4 + 2] = Math.floor(255 * image[i][2])
-            imageData.data[i * 4 + 3] = 255
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                const i = x + y * width
+                imageData.data[i * 4 + 0] = Math.floor(255 * image[x][y][0])
+                imageData.data[i * 4 + 1] = Math.floor(255 * image[x][y][1])
+                imageData.data[i * 4 + 2] = Math.floor(255 * image[x][y][2])
+                imageData.data[i * 4 + 3] = 255
+            }
         }
 
         ctx.putImageData(imageData, 0, 0)
